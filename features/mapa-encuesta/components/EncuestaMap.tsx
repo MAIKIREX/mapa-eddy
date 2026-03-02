@@ -17,7 +17,10 @@ type EncuestaMapProps = {
   selectedVoto: "__ALL__" | string;
 };
 
-const MAP_CENTER: [number, number] = [-16.5, -68.15];
+const MAP_BOUNDS: [[number, number], [number, number]] = [
+  [-16.66, -68.25],
+  [-16.34, -68.02],
+];
 const FEATURE_MACRO_FALLBACK: Record<string, string[]> = {
   CALACOTO: ["SUR"],
   OBRAJES: ["SUR"],
@@ -78,7 +81,7 @@ export function EncuestaMap({ geo, rows, selectedVoto }: EncuestaMapProps) {
 
   return (
     <div className="h-[420px] w-full overflow-hidden rounded-xl border border-accent-blue/45 bg-surface-2 md:h-[520px]">
-      <MapContainer center={MAP_CENTER} zoom={11.6} className="z-0 h-full w-full">
+      <MapContainer bounds={MAP_BOUNDS} className="z-0 h-full w-full">
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
