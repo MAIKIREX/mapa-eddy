@@ -2,7 +2,6 @@
 
 import { useMemo } from "react";
 import { CircleMarker, GeoJSON, MapContainer, Popup, TileLayer } from "react-leaflet";
-import type { Layer } from "leaflet";
 
 import { normalizeMacroName } from "@/features/encuesta/lib/normalize";
 import type { MacrodistritosGeoJSON, ParaMapaRow } from "@/features/encuesta/types";
@@ -23,6 +22,10 @@ const FEATURE_MACRO_FALLBACK: Record<string, string[]> = {
   CALACOTO: ["SUR"],
   OBRAJES: ["SUR"],
   OVEJUYO: ["SUR"],
+};
+
+type PopupBindableLayer = {
+  bindPopup: (content: string) => void;
 };
 
 function resolveStatByMacro<T extends Record<string, unknown>>(
@@ -92,7 +95,8 @@ export function EncuestaMap({ geo, rows, selectedVoto }: EncuestaMapProps) {
 
             return getChoroplethStyle({ pct });
           }}
-          onEachFeature={(feature, layer: Layer) => {
+          onEachFeature={(feature, layer) => {
+            const popupLayer = layer as PopupBindableLayer;
             const macroNameRaw =
               typeof feature.properties?.macro_vige === "string"
                 ? feature.properties.macro_vige
@@ -100,7 +104,7 @@ export function EncuestaMap({ geo, rows, selectedVoto }: EncuestaMapProps) {
             const macro = normalizeMacroName(macroNameRaw);
 
             if (!macro) {
-              layer.bindPopup(`<strong>Macro:</strong> ${macroNameRaw}<br/>Sin datos disponibles`);
+              popupLayer.bindPopup(`<strong>Macro:</strong> ${macroNameRaw}<br/>Sin datos disponibles`);
               return;
             }
 
@@ -111,7 +115,7 @@ export function EncuestaMap({ geo, rows, selectedVoto }: EncuestaMapProps) {
                 stats?.winnerPct == null ? "-" : `${stats.winnerPct.toFixed(1)}%`;
               const totalConVoto = stats?.totalConVoto ?? 0;
 
-              layer.bindPopup(
+              popupLayer.bindPopup(
                 `<strong>Macro:</strong> ${macroNameRaw}<br/><strong>Total con voto:</strong> ${totalConVoto}<br/><strong>Ganador:</strong> ${winner}<br/><strong>% ganador:</strong> ${winnerPct}`,
               );
               return;
@@ -121,7 +125,7 @@ export function EncuestaMap({ geo, rows, selectedVoto }: EncuestaMapProps) {
             const pct = stats?.pct == null ? "-" : `${stats.pct.toFixed(1)}%`;
             const totalConVoto = stats?.totalConVoto ?? 0;
 
-            layer.bindPopup(
+            popupLayer.bindPopup(
               `<strong>Macro:</strong> ${macroNameRaw}<br/><strong>Total con voto:</strong> ${totalConVoto}<br/><strong>% apoyo ${selectedVoto}:</strong> ${pct}`,
             );
           }}
