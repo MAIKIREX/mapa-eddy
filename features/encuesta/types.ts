@@ -22,10 +22,22 @@ export type MacroFeatureProps = {
   ha?: number;
 };
 
-export type MacrodistritosGeoJSON = GeoJSON.FeatureCollection<
-  GeoJSON.Geometry,
-  MacroFeatureProps & Record<string, unknown>
->;
+type GeoJsonGeometry = {
+  type: string;
+  coordinates?: unknown;
+  geometries?: GeoJsonGeometry[];
+};
+
+type GeoJsonFeature = {
+  type: "Feature";
+  geometry: GeoJsonGeometry | null;
+  properties: (MacroFeatureProps & Record<string, unknown>) | null;
+};
+
+export type MacrodistritosGeoJSON = {
+  type: "FeatureCollection";
+  features: GeoJsonFeature[];
+};
 
 export type EncuestaDataset = {
   paraMapa: ParaMapaRow[];
