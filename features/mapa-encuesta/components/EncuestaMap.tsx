@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
-import { CircleMarker, GeoJSON, MapContainer, Popup, TileLayer } from "react-leaflet";
+import * as ReactLeaflet from "react-leaflet";
+import type { ComponentType } from "react";
 
 import { normalizeMacroName } from "@/features/encuesta/lib/normalize";
 import type { MacrodistritosGeoJSON, ParaMapaRow } from "@/features/encuesta/types";
@@ -31,6 +32,18 @@ type PopupBindableLayer = {
   bindPopup: (content: string) => void;
 };
 
+type FeatureLike = {
+  properties?: Record<string, unknown> | null;
+};
+
+type LeafletComponent = ComponentType<Record<string, unknown>>;
+
+const MapContainer = ReactLeaflet.MapContainer as unknown as LeafletComponent;
+const TileLayer = ReactLeaflet.TileLayer as unknown as LeafletComponent;
+const GeoJSON = ReactLeaflet.GeoJSON as unknown as LeafletComponent;
+const CircleMarker = ReactLeaflet.CircleMarker as unknown as LeafletComponent;
+const Popup = ReactLeaflet.Popup as unknown as LeafletComponent;
+
 function resolveStatByMacro<T extends Record<string, unknown>>(
   stats: Record<string, T>,
   featureMacro: string | null,
@@ -53,6 +66,11 @@ function resolveStatByMacro<T extends Record<string, unknown>>(
   }
 
   return null;
+}
+
+function getFeatureMacro(feature: FeatureLike | undefined): string | null {
+  const value = feature?.properties?.macro_vige;
+  return typeof value === "string" ? normalizeMacroName(value) : null;
 }
 
 export function EncuestaMap({ geo, rows, selectedVoto }: EncuestaMapProps) {
@@ -89,8 +107,8 @@ export function EncuestaMap({ geo, rows, selectedVoto }: EncuestaMapProps) {
 
         <GeoJSON
           data={geo}
-          style={(feature) => {
-            const macro = normalizeMacroName(feature?.properties?.macro_vige);
+          style={(feature: FeatureLike | undefined) => {
+            const macro = getFeatureMacro(feature);
             const pct =
               selectedVoto === "__ALL__"
                 ? resolveStatByMacro(statsAll, macro)?.winnerPct ?? null
@@ -98,7 +116,7 @@ export function EncuestaMap({ geo, rows, selectedVoto }: EncuestaMapProps) {
 
             return getChoroplethStyle({ pct });
           }}
-          onEachFeature={(feature, layer) => {
+          onEachFeature={(feature: FeatureLike, layer: unknown) => {
             const popupLayer = layer as PopupBindableLayer;
             const macroNameRaw =
               typeof feature.properties?.macro_vige === "string"
